@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using TMPro;
 using UnityEngine;
 
@@ -61,10 +62,12 @@ public class UIManager : MonoBehaviour
     GameObject saveDoesntExist;
     [SerializeField]
     GameObject saveMenu;
-    #endregion fields
+	[SerializeField]
+	GameObject keepPlayingBtn;
+	#endregion fields
 
-    // Start is called before the first frame update
-    void Start()
+	// Start is called before the first frame update
+	void Start()
     {
         //Screen.SetResolution(800,500,true); // teoretycznie ustawia full screena i minimalne rozmiary, ale nie ufam temu.
         selectPlayers.gameObject.SetActive(false);
@@ -77,10 +80,11 @@ public class UIManager : MonoBehaviour
 
     }
 
-    /// <summary>
-    /// This func close app (game).
-    /// </summary>
-    public void Exit()
+	#region public methods
+	/// <summary>
+	/// This func close app (game).
+	/// </summary>
+	public void Exit()
     {
         Application.Quit();
         //Debug.Log("Zamykam Apke");
@@ -124,10 +128,10 @@ public class UIManager : MonoBehaviour
                     names.Add(assist);
             }
         }
-        GameManager.Instance.PlayerList.Add(new Player(names.Count, "Bank")); // Adding all players to game manager
+        GameManager.Instance.PlayerList.Add(new Player(names.Count, "Bank", 0)); // Adding all players to game manager
         for (int i = 0; i < names.Count; i++)
         {
-            GameManager.Instance.PlayerList.Add(new Player(0, names[i]));
+            GameManager.Instance.PlayerList.Add(new Player(0, names[i], null));
         }
         //foreach(Player player in GameManager.Instance.PlayerList)
         //{
@@ -135,16 +139,15 @@ public class UIManager : MonoBehaviour
         //}
         for (int i = 0; i < GameManager.Instance.PlayerList.Count; i++) // Turning on buttons to see information about players animals
         {
-            playersInfoBtns[i].SetActive(true);
-            playersBtnsText[i].text = GameManager.Instance.PlayerList[i].NickName;
-        }
+            Player player = GameManager.Instance.PlayerList[i];
+			playersInfoBtns[i].SetActive(true);
+            playersBtnsText[i].text = player.NickName;
+		}
         actualPlayerInfoTxt.text = $"Actual player: {GameManager.Instance.PlayerList[GameManager.Instance.ActualPlayerId].NickName}"; // Inormation about actual player turn
         gameWindow.SetActive(true);
         List<string> allPlayersNames = new List<string>();
         foreach (Player player in GameManager.Instance.PlayerList) // Add names to trade menu (to choose trader by player)
-        {
             allPlayersNames.Add(player.ToString());
-        }
         trader.AddOptions(allPlayersNames);
     }
 
@@ -288,15 +291,6 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Function realize all trade for the UI. (Hide trade window and button to show trade window)
-    /// </summary>
-    void RealizeTradeUI()
-    {
-        tradeBtn.SetActive(false);
-        traderBox.SetActive(false);
-    }
-
-    /// <summary>
     /// All logic (and UI tasks) to check and make transaction (trade) between players.
     /// </summary>
     public void TryTrade()
@@ -379,73 +373,27 @@ public class UIManager : MonoBehaviour
 
         // Checking whether a player has won
         if (GameManager.Instance.PlayerList[GameManager.Instance.ActualPlayerId].IsWin())
-            winnerBox.SetActive(true);
-    }
+		{
+			winnerBox.SetActive(true);
+            if(GameManager.Instance.PlayerList.Count(x => x.TurnOfWin==null) > 1)
+                keepPlayingBtn.SetActive(true);
+            else
+				keepPlayingBtn.SetActive(false);
+		}
+	}
 
-    /// <summary>
-    /// Show error box. Fun for UI when player try trade.
-    /// </summary>
-    /// <param name="why">enum with type why trade is not possible</param>
-    void ErrorMessage(ErrorType why)
-    {
-        switch (why)
-        {
-            case ErrorType.LetterInValue:
-                errorMessageText.text = "The values entered are incorrect.\nCheck that you have not entered a letter and that all windows have up to 2 characters.";
-                errorBox.SetActive(true);
-                break;
-            case ErrorType.TraderDontHaveAnimal:
-                errorMessageText.text = "The values entered are incorrect.\nCheck that the person you are trying to trade with has enough animals.";
-                errorBox.SetActive(true);
-                break;
-            case ErrorType.ValueNotEqual:
-                errorMessageText.text = "The values entered are incorrect.\nCheck that the value of your animals is the same before and after the trade.";
-                errorBox.SetActive(true);
-                break;
-            case ErrorType.TheSamePlayer:
-                errorMessageText.text = "The values entered are incorrect.\nYou cannot trade with yourself.";
-                errorBox.SetActive(true);
-                break;
-        }
-    }
-
-    /// <summary>
-    /// Fun for hide error box
-    /// </summary>
-    public void HideErrorBox()
+	/// <summary>
+	/// Fun for hide error box
+	/// </summary>
+	public void HideErrorBox()
     {
         errorBox.SetActive(false);
     }
 
-    /// <summary>
-    /// Get animal by id.
-    /// </summary>
-    /// <param name="id">from 0 up to 6</param>
-    /// <returns></returns>
-    IAnimal GetAnimal(byte id)
-    {
-        if (id == 0)
-            return new Rabbit();
-        else if (id == 1)
-            return new Sheep();
-        else if (id == 2)
-            return new Pig();
-        else if (id == 3)
-            return new Cow();
-        else if (id == 4)
-            return new Horse();
-        else if (id == 5)
-            return new SmallDog();
-        else if (id == 6)
-            return new BigDog();
-        else
-            return null;
-    }
-
-    /// <summary>
-    /// Func to hide box with information about player
-    /// </summary>
-    public void HideInfoAboutPlayer()
+	/// <summary>
+	/// Func to hide box with information about player
+	/// </summary>
+	public void HideInfoAboutPlayer()
     {
         playerInfoBox.SetActive(false);
         actualActivePlayerInfo = 5;
@@ -492,17 +440,6 @@ public class UIManager : MonoBehaviour
         actualPlayerInfoTxt.text = $"Actual player: {GameManager.Instance.PlayerList[GameManager.Instance.ActualPlayerId].NickName}";
         //Debug.Log(actualPlayerInfoTxt.text[1]);
         tradeBtn.SetActive(true);
-    }
-
-    /// <summary>
-    /// Fun compares two colors and checks that they are equal to each other to 3 decimal places.
-    /// </summary>
-    /// <param name="color1">first color</param>
-    /// <param name="color2">second color</param>
-    /// <returns><b>true</b> - if colors are equal<br/><b>false</b> - if colors are different</returns>
-    bool ColorsEqual(UnityEngine.Color color1, UnityEngine.Color color2)
-    {
-        return Mathf.Round(color1.r * 1000) == Mathf.Round(color2.r * 1000) && Mathf.Round(color1.g * 1000) == Mathf.Round(color2.g * 1000) && Mathf.Round(color1.b * 1000) == Mathf.Round(color2.b * 1000);
     }
 
     /// <summary>
@@ -574,7 +511,7 @@ public class UIManager : MonoBehaviour
             tradeBtn.SetActive(!GameManager.Instance.SaveGame.WasTrade);
             gameWindow.SetActive(true);
             loadGameWindow.SetActive(false);
-            List<string> allPlayersNames = new List<string>();
+            List<string> allPlayersNames = new();
             foreach (Player player in GameManager.Instance.PlayerList) // Add names to trade menu (to choose trader by player)
             {
                 allPlayersNames.Add(player.ToString());
@@ -585,7 +522,91 @@ public class UIManager : MonoBehaviour
         {
             saveDoesntExist.SetActive(true);
         }
-    }
+	}
+
+	public void KeepPlaying()
+	{
+        HideInfoAboutPlayer();
+		winnerBox.SetActive(false);
+        var player = GameManager.Instance.PlayerList[GameManager.Instance.ActualPlayerId];
+		dicesResultText.text = $"Player \"{player.NickName}\" won and have {player.TurnOfWin} place!";
+		dicesResultBox.SetActive(true);
+	}
+    #endregion public methods
+
+	#region private methods
+	/// <summary>
+	/// Function realize all trade for the UI. (Hide trade window and button to show trade window)
+	/// </summary>
+	private void RealizeTradeUI()
+	{
+		tradeBtn.SetActive(false);
+		traderBox.SetActive(false);
+	}
+
+	/// <summary>
+	/// Show error box. Fun for UI when player try trade.
+	/// </summary>
+	/// <param name="why">enum with type why trade is not possible</param>
+	private void ErrorMessage(ErrorType why)
+	{
+		switch (why)
+		{
+			case ErrorType.LetterInValue:
+				errorMessageText.text = "The values entered are incorrect.\nCheck that you have not entered a letter and that all windows have up to 2 characters.";
+				errorBox.SetActive(true);
+				break;
+			case ErrorType.TraderDontHaveAnimal:
+				errorMessageText.text = "The values entered are incorrect.\nCheck that the person you are trying to trade with has enough animals.";
+				errorBox.SetActive(true);
+				break;
+			case ErrorType.ValueNotEqual:
+				errorMessageText.text = "The values entered are incorrect.\nCheck that the value of your animals is the same before and after the trade.";
+				errorBox.SetActive(true);
+				break;
+			case ErrorType.TheSamePlayer:
+				errorMessageText.text = "The values entered are incorrect.\nYou cannot trade with yourself.";
+				errorBox.SetActive(true);
+				break;
+		}
+	}
+
+	/// <summary>
+	/// Get animal by id.
+	/// </summary>
+	/// <param name="id">from 0 up to 6</param>
+	/// <returns></returns>
+	private IAnimal GetAnimal(byte id)
+	{
+		if (id == 0)
+			return new Rabbit();
+		else if (id == 1)
+			return new Sheep();
+		else if (id == 2)
+			return new Pig();
+		else if (id == 3)
+			return new Cow();
+		else if (id == 4)
+			return new Horse();
+		else if (id == 5)
+			return new SmallDog();
+		else if (id == 6)
+			return new BigDog();
+		else
+			return null;
+	}
+
+	/// <summary>
+	/// Fun compares two colors and checks that they are equal to each other to 3 decimal places.
+	/// </summary>
+	/// <param name="color1">first color</param>
+	/// <param name="color2">second color</param>
+	/// <returns><b>true</b> - if colors are equal<br/><b>false</b> - if colors are different</returns>
+	private bool ColorsEqual(UnityEngine.Color color1, UnityEngine.Color color2)
+	{
+		return Mathf.Round(color1.r * 1000) == Mathf.Round(color2.r * 1000) && Mathf.Round(color1.g * 1000) == Mathf.Round(color2.g * 1000) && Mathf.Round(color1.b * 1000) == Mathf.Round(color2.b * 1000);
+	}
+	#endregion private methods
 }
 
 enum ErrorType

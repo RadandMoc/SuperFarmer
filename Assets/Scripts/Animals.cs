@@ -21,7 +21,7 @@ public class Rabbit : IAnimal
         return true;
     }
 
-    public override int GetHashCode() => 0;
+    public override int GetHashCode() => 1;
 
     public string GetName() => name;
 }
@@ -48,7 +48,7 @@ public class Sheep : IAnimal
         return true;
     }
 
-    public override int GetHashCode() => 0;
+    public override int GetHashCode() => 2;
 
     public string GetName() => name;
 }
@@ -75,7 +75,7 @@ public class Pig : IAnimal
         return true;
     }
 
-    public override int GetHashCode() => 0;
+    public override int GetHashCode() => 3;
 
     public string GetName() => name;
 }
@@ -102,7 +102,7 @@ public class Cow : IAnimal
         return true;
     }
 
-    public override int GetHashCode() => 0;
+    public override int GetHashCode() => 4;
 
     public string GetName() => name;
 }
@@ -129,7 +129,7 @@ public class Horse : IAnimal
         return true;
     }
 
-    public override int GetHashCode() => 0;
+    public override int GetHashCode() => 5;
 
     public string GetName() => name;
 }
@@ -156,7 +156,7 @@ public class SmallDog : IAnimal
         return true;
     }
 
-    public override int GetHashCode() => 0;
+    public override int GetHashCode() => 6;
 
     public string GetName() => name;
 }
@@ -183,7 +183,7 @@ public class BigDog : IAnimal
         return true;
     }
 
-    public override int GetHashCode() => 0;
+    public override int GetHashCode() => 7;
 
     public string GetName() => name;
 }
@@ -209,7 +209,7 @@ public class Wolf : IAnimal
         return true;
     }
 
-    public override int GetHashCode() => 0;
+    public override int GetHashCode() => 8;
 
     public string GetName() => name;
 }
@@ -235,7 +235,7 @@ public class Fox : IAnimal
         return true;
     }
 
-    public override int GetHashCode() => 0;
+    public override int GetHashCode() => 9;
 
     public string GetName() => name;
 }

@@ -75,7 +75,7 @@ namespace Assets.Scripts
                 }
                 return zapis;
             }
-            catch (FileNotFoundException e)
+            catch (FileNotFoundException)
             {
                 return null;
             }
